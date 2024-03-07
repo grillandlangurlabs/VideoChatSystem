@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Chat with Color Preferences and Texting</title>
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .video-container {
+    background-color: #fff; /* Default background color */
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+  }
+
+  #localVideo, #remoteVideo {
+    width: 320px;
+    height: 240px;
+    margin-bottom: 10px;
+  }
+
+  .color-picker {
+    margin-bottom: 20px;
+  }
+
+  .color-picker input {
+    width: 200px;
+    padding: 10px;
+    margin: 5px;
+  }
+
+  .chat-container {
+    width: 100%;
+    max-width: 400px;
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow-y: auto;
+  }
+
+  .message {
+    margin-bottom: 10px;
+  }
+</style>
+</head>
+<body>
+
+<div class="video-container">
+  <video id="localVideo" autoplay muted></video>
+  <video id="remoteVideo" autoplay></video>
+</div>
+
+<div class="color-picker">
+  <label for="backgroundColor">Background Color:</label>
+  <input type="color" id="backgroundColor" value="#ffffff">
+  
+  <label for="textColor">Text Color:</label>
+  <input type="color" id="textColor" value="#000000">
+</div>
+
+<div class="chat-container" id="chatContainer">
+  <!-- Chat messages will be displayed here -->
+</div>
+
+<div>
+  <input type="text" id="messageInput" placeholder="Type your message...">
+  <button onclick="sendMessage()">Send</button>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/simplewebrtc/out/simplewebrtc-with-adapter.bundle.js"></script>
+<script>
+  const webrtc = new SimpleWebRTC({
+    localVideoEl: 'localVideo',
+    remoteVideosEl: 'remoteVideo',
+    autoRequestMedia: true
+  });
+
+  webrtc.on('readyToCall', () => {
+    webrtc.joinRoom('your-room-name');
+  });
+
+  // Function to apply color preferences
+  function applyColorPreferences() {
+    const backgroundColor = document.getElementById('backgroundColor').value;
+    const textColor = document.getElementById('textColor').value;
+
+    document.body.style.backgroundColor = backgroundColor;
+    document.body.style.color = textColor;
+    document.querySelector('.video-container').style.backgroundColor = backgroundColor;
+  }
+
+  // Event listener for color picker change
+  document.getElementById('backgroundColor').addEventListener('change', applyColorPreferences);
+  document.getElementById('textColor').addEventListener('change', applyColorPreferences);
+
+  // Apply color preferences when the page loads
+  window.addEventListener('load', applyColorPreferences);
+
+  // Function to send a chat message
+  function sendMessage() {
+    const messageInput = document.getElementById('messageInput');
+    const message = messageInput.value.trim();
+    if (message !== '') {
+      addMessage('You', message);
+      // Send message to other users via WebRTC data channel
+      webrtc.sendToAll('chat', { name: 'You', message: message });
+      messageInput.value = '';
+    }
+  }
+
+  // Function to add a chat message to the chat container
+  function addMessage(sender, message) {
+    const chatContainer = document.getElementById('chatContainer');
+    const messageElement = document.createElement('div');
+    messageElement.classList.add('message');
+    messageElement.textContent = `${sender}: ${message}`;
+    chatContainer.appendChild(messageElement);
+    // Scroll to the bottom of the chat container
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+  }
+
+  // Listen for incoming chat messages via WebRTC data channel
+  webrtc.connection.on('message', function(data) {
+    if (data.type === 'chat') {
+      addMessage(data.payload.name, data.payload.message);
+    }
+  });
+</script>
+
+</body>
+</html>
