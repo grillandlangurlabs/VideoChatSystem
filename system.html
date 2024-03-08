@@ -47,12 +47,29 @@
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     margin-bottom: 20px;
+    position: relative; /* Needed for chat bubble positioning */
   }
 
   #localVideo, #remoteVideo {
     width: 320px;
     height: 240px;
     margin-bottom: 10px;
+  }
+
+  .chat-bubble {
+    position: absolute;
+    bottom: 10px;
+    left: 10px;
+    background-color: #f0f0f0;
+    border-radius: 5px;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    z-index: 1; /* Ensure chat bubble is above video */
+    display: none; /* Hide initially */
+  }
+
+  .chat-bubble p {
+    margin: 0;
   }
 
   .color-picker {
@@ -90,6 +107,9 @@
 <div class="video-container">
   <video id="localVideo" autoplay muted></video>
   <video id="remoteVideo" autoplay></video>
+  <div class="chat-bubble" id="chatBubble">
+    <p>Welcome to the chat!</p>
+  </div>
 </div>
 
 <div class="color-picker">
@@ -99,6 +119,10 @@
   <label for="textColor">Text Color:</label>
   <input type="color" id="textColor" value="#000000">
 </div>
+
+<!-- Chat Input -->
+<input type="text" id="chatInput" placeholder="Type your message...">
+<button onclick="sendMessage()">Send</button>
 
 <script src="https://cdn.jsdelivr.net/npm/simplewebrtc/out/simplewebrtc-with-adapter.bundle.js"></script>
 <script>
@@ -133,6 +157,33 @@
 
   // Apply color preferences when the page loads
   window.addEventListener('load', applyColorPreferences);
+
+  // Function to show chat bubble
+  function showChatBubble() {
+    document.getElementById('chatBubble').style.display = 'block';
+  }
+
+  // Function to hide chat bubble
+  function hideChatBubble() {
+    document.getElementById('chatBubble').style.display = 'none';
+  }
+
+  // Function to send a chat message
+  function sendMessage() {
+    const messageInput = document.getElementById('chatInput');
+    const message = messageInput.value.trim();
+    if (message !== '') {
+      // Show the chat bubble
+      showChatBubble();
+      // Display the message in the chat bubble
+      const chatBubble = document.getElementById('chatBubble');
+      chatBubble.innerHTML += `<p>You: ${message}</p>`;
+      // Clear the input field
+      messageInput.value = '';
+      // Hide the chat bubble after a delay
+      setTimeout(hideChatBubble, 5000);
+    }
+  }
 </script>
 
 </body>
